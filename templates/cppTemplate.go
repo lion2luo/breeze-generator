@@ -49,6 +49,24 @@ func (ct *CppTemplate) GenerateCode(schema *core.Schema, context *core.Context) 
 	contents[schema.Name+".cpp"] = cppBuf.Bytes()
 	return contents, nil
 }
+func (ct *CppTemplate) getLeveledNamespaces(schema *core.Schema) []string {
+	namespaces := strings.Split(schema.Package, ".")
+	for i := range namespaces {
+		namespaces[i] = strings.TrimSpace(namespaces[i])
+	}
+	return namespaces
+}
+
+func (ct *CppTemplate) getIncludePrefix(context *core.Context) string {
+	includePrefix := context.Options[core.CppIncludePrefix]
+	if includePrefix == "" {
+		includePrefix = "breeze/"
+	}
+	if includePrefix[len(includePrefix)-1] == '/' {
+		return includePrefix
+	}
+	return includePrefix + "/"
+}
 
 func (ct *CppTemplate) generateHeader(schema *core.Schema, buf *bytes.Buffer) error {
 	if len(schema.Messages) > 0 {

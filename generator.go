@@ -81,15 +81,14 @@ func Generate(name string, content []byte, config *Config) error {
 }
 
 func parseSchemaWithPath(path string, context *core.Context) error {
-	f, _ := os.Open(path)
-	fi, err := f.Stat()
+	fi, err := os.Stat(path)
 	if err != nil {
 		return err
 	}
 
 	if fi.IsDir() {
 		var fileInfo []os.FileInfo
-		fileInfo, err = ioutil.ReadDir(fi.Name())
+		fileInfo, err = ioutil.ReadDir(path)
 		if err == nil {
 			path = addSeparator(path)
 			for _, info := range fileInfo {

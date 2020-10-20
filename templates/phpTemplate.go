@@ -3,6 +3,7 @@ package templates
 import (
 	"bytes"
 	"errors"
+	"os"
 	"strconv"
 	"strings"
 
@@ -161,7 +162,14 @@ func (pt *PHPTemplate) generateMessage(schema *core.Schema, message *core.Messag
 
 	//end of class
 	buf.WriteString("}\n")
-	return withPackageDir(message.Name, schema) + ".php", buf.Bytes(), nil
+	return phpWithPackageDir(message.Name, schema) + ".php", buf.Bytes(), nil
+}
+
+func phpWithPackageDir(fileName string, schema *core.Schema) string {
+	if schema.Options[core.WithPackageDir] != "" {
+		return strings.Join(getLeveledNamespaces(schema.Package), string(os.PathSeparator)) + string(os.PathSeparator) + fileName
+	}
+	return fileName
 }
 
 func (pt *PHPTemplate) generateEnum(schema *core.Schema, message *core.Message, context *core.Context) (file string, content []byte, err error) {
@@ -283,14 +291,18 @@ func (pt *PHPTemplate) generateMotanClient(schema *core.Schema, service *core.Se
 	return "", nil, nil
 }
 
-func (pt *PHPTemplate) getNamespace(pkg string) string {
+func getLeveledNamespaces(pkg string) []string {
 	items := strings.Split(pkg, ".")
 	if len(items) == 0 {
-		return ""
+		return nil
 	}
-	var ns string
+	var ns []string
 	for _, item := range items {
-		ns = ns + firstUpper(item) + "\\"
+		ns = append(ns, firstUpper(item))
 	}
-	return ns[:len(ns)-1]
+	return ns
+}
+
+func (pt *PHPTemplate) getNamespace(pkg string) string {
+	return strings.Join(getLeveledNamespaces(pkg), "\\")
 }
